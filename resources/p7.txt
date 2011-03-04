@@ -1,0 +1,4 @@
+And while we're on the topic of groovy PDF features, you will also notice that the document properties have been set as
+well. Although this is fairly straightforward with Zend_Pdf, finding information on exactly what each field is supposed
+to contain can be surprisingly difficult. I have included a comment in the source that points to a PDF reference manual
+that provides the exact definitions of each field.

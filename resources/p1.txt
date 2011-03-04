@@ -1,0 +1,5 @@
+This is a simple paragraph of text that is being used to demonstrate the automatic line wrapping that is implemented
+within the Wrap_Pdf class. If you check the source text (located in resources/p1.txt), you will notice that while it
+does have line breaks, they are not at the same point in the PDF file as they are in the source text. That's because
+the writeText() method replaces all line breaks with spaces. Well, it replaces Mac-style line feeds anyway... if your
+results are different it might be because line 355 requires some tweaking.

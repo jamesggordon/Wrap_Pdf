@@ -1,0 +1,1 @@
+This snippet demonstrates how the writeText() method can deal with changing font styles and still manage to wrap things properly.
