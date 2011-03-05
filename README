@@ -1,0 +1,6 @@
+Wrap_Pdf is yet another wrapper class for Zend_Pdf that aims to simplify a few basic operations, such as writing
+wrapped text and placing images.
+
+It is by no means a full-featured class. In its current form it is more of a example of how to use Zend_Pdf to
+accomplish the basic things that it accomplishes. However, it could certainly be used as the basis for a much
+more elaborate solution.
