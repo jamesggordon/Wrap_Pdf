@@ -60,7 +60,7 @@ class Wrap_Pdf
                 $this->paperSizeDetail = Zend_Pdf_Page::SIZE_LETTER_LANDSCAPE;
             }
         }
-        else
+        else if ( $paperSize == 'A4' )
         {
             if ( $layout == 'P' )
             {
@@ -75,12 +75,22 @@ class Wrap_Pdf
                 $this->paperSizeDetail = Zend_Pdf_Page::SIZE_A4_LANDSCAPE;
             }
         }
+        else if ( $paperSize == 'BusinessCard' )
+        {
+            $this->paperWidth = 89;
+            $this->paperHeight = 51;
+            $this->paperSizeDetail = '252:144:';
+        }
+        else
+        {
+            throw new Exception( 'Unknown paper size requested' );
+        }
 
         // Create the actual PDF object
         $this->zpdf = new Zend_Pdf();
 
         // Set up fonts
-        $this->fontRegular = Zend_Pdf_Font::fontWithPath('font/JUICE_Regular.ttf');
+        $this->fontRegular = Zend_Pdf_Font::fontWithPath('/Users/james/ws/wip/font/Dax-Regular.ttf');
         $this->fontItalic = Zend_Pdf_Font::fontWithPath('font/JUICE_Italic.ttf');
         $this->fontBold = Zend_Pdf_Font::fontWithPath('font/JUICE_Bold.ttf');
         $this->fontBoldItalic = Zend_Pdf_Font::fontWithPath('font/JUICE_Bold_Italic.ttf');
@@ -173,7 +183,7 @@ class Wrap_Pdf
                 break;
 
             case 2:
-                $this->setFont( $this->fontRegular, 9, 6, 'grey' );
+                $this->setFont( $this->fontRegular, 24, 6, 'grey' );
                 break;
 
             case 3:
@@ -276,7 +286,7 @@ class Wrap_Pdf
         }
         else
         {
-            $this->zpdf->render();
+            return $this->zpdf->render();
         }
     }
 
