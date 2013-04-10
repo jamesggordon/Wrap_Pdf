@@ -276,7 +276,7 @@ class Wrap_Pdf
         }
         else
         {
-            $this->zpdf->render();
+            return $this->zpdf->render();
         }
     }
 
