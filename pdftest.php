@@ -1,5 +1,5 @@
 <?php
-define( 'ZEND_PATH', '../ws/library' ); // Obviously you'll want to set ZEND_PATH to point to the folder in which your Zend folder resides.
+define( 'ZEND_PATH', '../zf1/library' ); // Obviously you'll want to set ZEND_PATH to point to the folder in which your Zend folder resides.
 set_include_path( ZEND_PATH . PATH_SEPARATOR . get_include_path());
 require_once ZEND_PATH . '/Zend/Loader/Autoloader.php';
 Zend_Loader_Autoloader::getInstance();

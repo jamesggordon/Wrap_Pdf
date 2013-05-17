@@ -75,6 +75,21 @@ class Wrap_Pdf
                 $this->paperSizeDetail = Zend_Pdf_Page::SIZE_A4_LANDSCAPE;
             }
         }
+        else if ( $paperSize == 'A3' )
+        {
+            if ( $layout == 'P' )
+            {
+                $this->paperWidth = 297;  // millimetres
+                $this->paperHeight = 420; // millimetres
+                $this->paperSizeDetail = '842:1190:';
+            }
+            else
+            {
+                $this->paperWidth = 420;  // millimetres
+                $this->paperHeight = 297; // millimetres
+                $this->paperSizeDetail = '1190:842:';
+            }
+        }
         else if ( $paperSize == 'BusinessCard' )
         {
             $this->paperWidth = 89;
@@ -90,7 +105,7 @@ class Wrap_Pdf
         $this->zpdf = new Zend_Pdf();
 
         // Set up fonts
-        $this->fontRegular = Zend_Pdf_Font::fontWithPath('/Users/james/ws/wip/font/Dax-Regular.ttf');
+        $this->fontRegular = Zend_Pdf_Font::fontWithPath('font/JUICE_Regular.ttf');
         $this->fontItalic = Zend_Pdf_Font::fontWithPath('font/JUICE_Italic.ttf');
         $this->fontBold = Zend_Pdf_Font::fontWithPath('font/JUICE_Bold.ttf');
         $this->fontBoldItalic = Zend_Pdf_Font::fontWithPath('font/JUICE_Bold_Italic.ttf');
@@ -133,23 +148,69 @@ class Wrap_Pdf
         $this->zpdf->properties['Trapped'] = 'False'; // See this page for information on trapping: http://bit.ly/aKLDYZ
     }
 
-    public function setMargins( $left, $right = 0, $top = 0, $bottom = 0 )
+    /**
+     * Set the page margins. The top margin is used for initial placement of the "cursor" when a page is added and the
+     * bottom margin is used to figure out when to automatically break to a new page. In reality these two margins
+     * aren't used as often as the left and right margins, which are used every time writeText() is used to place
+     * text on the page. You can change the margins (esp. the left and right margins) whenever you like. So if you need
+     * to place centered or right-justified text at a specific part of the page, you can re-set the margins, move the
+     * "cursor" and call the writeText() method.
+     *
+     * By default, setting a margin with a positive integer sets the margin relative to that edge. So providing a value
+     * of 10 for the left margin will set the left margin 10mm from the left side of the page. You can, however, also
+     * set margins relative to the opposite edge by using negative numbers. So providing a value of -100 for the left
+     * margin will set the left margin 100mm from the right side of the page.
+     *
+     * @param integer $left
+     * @param integer $right
+     * @param integer $top
+     * @param integer $bottom
+     */
+    public function setMargins( $left, $right = '', $top = '', $bottom = '' )
     {
-        $this->currentMarginLeft = $left;
-
-        if ( $right )
+        if ( $left < 0 )
         {
-            $this->currentMarginRight = $right;
+            $this->currentMarginLeft = $this->paperWidth + $left;
+        }
+        else
+        {
+            $this->currentMarginLeft = $left;
         }
 
-        if ( $top )
+        if ( $right !== '' )
         {
-            $this->currentMarginTop = $top;
+            if ( $right < 0 )
+            {
+                $this->currentMarginRight = $this->paperWidth + $right;
+            }
+            else
+            {
+                $this->currentMarginRight = $right;
+            }
         }
 
-        if ( $bottom )
+        if ( $top !== '' )
         {
-            $this->currentMarginBottom = $bottom;
+            if ( $top < 0 )
+            {
+                $this->currentMarginTop = $this->paperHeight + $top;
+            }
+            else
+            {
+                $this->currentMarginTop = $top;
+            }
+        }
+
+        if ( $bottom !== '' )
+        {
+            if ( $bottom < 0 )
+            {
+                $this->currentMarginBottom = $this->paperHeight + $bottom;
+            }
+            else
+            {
+                $this->currentMarginBottom = $bottom;
+            }
         }
     }
 
@@ -183,7 +244,7 @@ class Wrap_Pdf
                 break;
 
             case 2:
-                $this->setFont( $this->fontRegular, 24, 6, 'grey' );
+                $this->setFont( $this->fontRegular, 9, 6, 'grey' );
                 break;
 
             case 3:
@@ -250,8 +311,30 @@ class Wrap_Pdf
         }
     }
 
+    public function drawLine( $x1, $y1, $x2, $y2, $outline = 'black', $fill = 'white' )
+    {
+        $save_fill = $this->currentFillColour;
+
+        $x1 = $this->mmToPoints( $x1 );
+        $x2 = $this->mmToPoints( $x2 );
+        $y1 = $this->mmToPoints( $this->paperHeight - $y1 );
+        $y2 = $this->mmToPoints( $this->paperHeight - $y2 );
+
+        $this->setLineColour( $outline );
+        $this->setFillColour( $fill );
+
+        $this->zpdf->pages[$this->currentPage]->drawLine( $x1, $y1, $x2, $y2 );
+
+        if ( $save_fill )
+        {
+            $this->setFillColour( $save_fill );
+        }
+    }
+
     public function drawRectangle( $x1, $y1, $x2, $y2, $outline = 'black', $fill = 'white' )
     {
+        $save_fill = $this->currentFillColour;
+
         $x1 = $this->mmToPoints( $x1 );
         $x2 = $this->mmToPoints( $x2 );
         $y1 = $this->mmToPoints( $this->paperHeight - $y1 );
@@ -261,6 +344,11 @@ class Wrap_Pdf
         $this->setFillColour( $fill );
 
         $this->zpdf->pages[$this->currentPage]->drawRectangle( $x1, $y1, $x2, $y2 );
+
+        if ( $save_fill )
+        {
+            $this->setFillColour( $save_fill );
+        }
     }
 
     public function output( $filename = '' )
@@ -317,7 +405,7 @@ class Wrap_Pdf
      *
      * Please note that this method starts by splitting up the incoming text into individual lines and then calling the
      * writeText() method to do the actual rendering. The only real thing this adds over calling writeText() directly
-     * is that leading spaces on ALL lines will be preserved.
+     * is that leading spaces on ALL lines will be preserved, not just those on the first line.
      *
      * @param string $text The line of text to be written.
      */
@@ -341,17 +429,24 @@ class Wrap_Pdf
      * bottom of this page for details: http://framework.zend.com/manual/en/zend.pdf.pages.html
      *
      * @param string $text The line of text to be written.
+     * @param string $align Alignment - [l]eft, [r]ight or [c]entered
      */
-    public function writeText( $text )
+    public function writeText( $text, $align = 'l' )
     {
+        // This will be calculated later for each line we output, but only if we're not left justified
+        $offset = 0;
+
+        // $lineText is the line of text that we will ultimately write out - we may write more than one line
         $lineText = '';
 
+        // Preserve leading spaces (otherwise we'll lose them at the next step)
         for( $i = 0, $m = strlen( $text ); $i < $m && $text[$i] == ' '; $i++ )
         {
             $lineText .= ' ';
         }
 
-        preg_match_all('/([^\s]*\s*)/i', $text, $matches);
+        // Break up paragraph into individual words using space as the delimiter
+        preg_match_all( '/([^\s]*\s*)/i', $text, $matches );
         $words = $matches[1];
 
         $lineWidth = $this->getStringWidth( $lineText );
@@ -373,10 +468,26 @@ class Wrap_Pdf
             }
             else
             {
-                // At this point we simply need to render the line and add a carriage return
+                // Looks like the line is going to consume the maximum available width, so we'll deal with justification
+                // and then write the line of text out. For efficiency reasons the code above that calcualtes the line
+                // widths always includes the width of an extra space at the end. This is fine for left justified text,
+                // (not perfect, but much more efficient), but not so good when trying to perfectly center headings or
+                // right-align some text. So in those two cases we'll re-calculate the width of the line so that we
+                // can figure out our offset more precisely. The anti-micro-optimisationists would probably argue that
+                // it would be better to simply re-calculate the length of the entire line rather than add up the width
+                // of each word, which would result in less code and more precision for left justified text as well.
+                if ( $align == 'c' )
+                {
+                    $offset = ( $width - $this->getStringWidth( rtrim( $lineText ))) / 2;
+                }
+                else if ( $align == 'r' )
+                {
+                    $offset = $width - $this->getStringWidth( rtrim( $lineText ));
+                }
+
                 $this->zpdf->pages[$this->currentPage]->drawText( $lineText,
-                                                                  $this->mmToPoints( $this->cx ),
-                                                                  $this->mmToPoints( $this->paperHeight - $this->cy ));
+                                                                  $this->mmToPoints( $this->cx + $offset ),
+                                                                  $this->mmToPoints( $this->paperHeight - $this->cy ), 'UTF-8' );
                 $this->ln();
                 $width = $this->paperWidth - $this->currentMarginRight - $this->cx;
 
@@ -387,9 +498,18 @@ class Wrap_Pdf
         }
 
         // At this point we're finishing off the rendering of a line that does NOT need a carriage return
+        if ( $align == 'c' )
+        {
+            $offset = ( $width - $this->getStringWidth( rtrim( $lineText ))) / 2;
+        }
+        else if ( $align == 'r' )
+        {
+            $offset = $width - $this->getStringWidth( rtrim( $lineText ));
+        }
+
         $this->zpdf->pages[$this->currentPage]->drawText( $lineText,
-                                                          $this->mmToPoints( $this->cx ),
-                                                          $this->mmToPoints( $this->paperHeight - $this->cy ));
+                                                          $this->mmToPoints( $this->cx + $offset ),
+                                                          $this->mmToPoints( $this->paperHeight - $this->cy ), 'UTF-8' );
 
         $this->cx += $this->getStringWidth( $lineText );
     }
