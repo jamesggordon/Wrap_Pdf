@@ -662,5 +662,10 @@ class Wrap_Pdf
     {
         $this->cy = $y;
     }
+
+    public function getPageNo()
+    {
+        return $this->currentPage;
+    }
 }
 ?>
